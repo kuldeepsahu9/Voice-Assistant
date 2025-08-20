@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jarvis - Voice Assistant</title>
+  <style>
+    body {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+    button {
+      background: #1e293b;
+      color: #f8fafc;
+      border: none;
+      padding: 15px 25px;
+      font-size: 1.2rem;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #334155;
+    }
+    .status {
+      margin-top: 20px;
+      font-size: 1.1rem;
+      color: #38bdf8;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎙️ Jarvis - Voice Assistant</h1>
+  <button onclick="startListening()">Start Listening</button>
+  <div class="status" id="status">Not Listening...</div>
+
+  <script>
+    let femaleVoice = null;
+
+    // Load voices and select Indian female if available
+    function loadVoices() {
+      let voices = speechSynthesis.getVoices();
+      // Try Indian female voices first
+      femaleVoice = voices.find(voice =>
+        voice.lang.includes("en-IN") || voice.lang.includes("hi-IN") ||
+        voice.name.toLowerCase().includes("heera") ||
+        voice.name.toLowerCase().includes("google हिन्दी") ||
+        voice.name.toLowerCase().includes("indian")
+      );
+      // fallback: any female voice
+      if (!femaleVoice) {
+        femaleVoice = voices.find(voice =>
+          voice.name.toLowerCase().includes("female") ||
+          voice.name.toLowerCase().includes("zira") ||
+          voice.name.toLowerCase().includes("susan") ||
+          voice.name.toLowerCase().includes("samantha")
+        );
+      }
+      // last fallback: first available
+      if (!femaleVoice && voices.length > 0) femaleVoice = voices[0];
+    }
+    speechSynthesis.onvoiceschanged = loadVoices;
+
+    // Speak function
+    function speak(message) {
+      if (!femaleVoice) loadVoices();
+      let speech = new SpeechSynthesisUtterance(message);
+      speech.pitch = 1;
+      speech.rate = 1;
+      speech.volume = 1;
+      if (femaleVoice) speech.voice = femaleVoice;
+      speechSynthesis.speak(speech);
+    }
+
+    // Voice Recognition
+    function startListening() {
+      let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = "en-US"; // you can change to "en-IN" for better Indian English detection
+      recognition.start();
+
+      document.getElementById("status").innerText = "🎧 Listening...";
+
+      recognition.onresult = function(event) {
+        let transcript = event.results[0][0].transcript.toLowerCase();
+        document.getElementById("status").innerText = "You said: " + transcript;
+        console.log("Command:", transcript);
+
+        // === COMMANDS ===
+        if (transcript.includes("good morning")) {
+          speak("Good morning Kuldeep, have a wonderful day!");
+        }
+        else if (transcript.includes("how are you")) {
+          speak("I am always fine when I am with you.");
+        }
+        else if (transcript.includes("tell me a joke")) {
+          speak("Why don’t scientists trust atoms? Because they make up everything!");
+        }
+        else if (transcript.includes("what's the date") || transcript.includes("date today")) {
+          let today = new Date().toLocaleDateString();
+          speak("Today’s date is " + today);
+        }
+        else if (transcript.includes("weather")) {
+          speak("Checking weather on Google");
+          window.open("https://www.google.com/search?q=weather", "_blank");
+        }
+        else if (transcript.includes("hello baby")) {
+          speak("Hey baby, how can I help you?");
+        }
+        else if (transcript.includes("what is my brother name")) {
+          speak("Your brother's name is Vinod");
+        }
+        else if (transcript.includes("what is my sister name")) {
+          speak("Your sister's name is Rajnandani");
+        }
+        else if (transcript.includes("what is my girlfriend name")) {
+          speak("Ohh baby, you do not have a girlfriend");
+        }
+        else if (transcript.includes("time")) {
+          let now = new Date();
+          let time = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+          speak("The time is " + time);
+        }
+        else if (transcript.includes("open youtube")) {
+          speak("Opening YouTube");
+          window.open("https://youtube.com", "_blank");
+        }
+        else if (transcript.includes("open google")) {
+          speak("Opening Google");
+          window.open("https://google.com", "_blank");
+        }
+        else if (transcript.includes("open instagram")) {
+          speak("Opening Instagram");
+          window.open("https://instagram.com", "_blank");
+        }
+        else if (transcript.includes("play arijit singh")) {
+          speak("Playing Arijit Singh songs on YouTube");
+          window.open("https://www.youtube.com/results?search_query=arijit+singh+songs", "_blank");
+        }
+        else if (transcript.includes("who is god")) {
+          speak("Bala ji Maharaj");
+        }
+        else if (transcript.includes("what is your name")) {
+          speak("My name is Jarvis, your Artificial Intelligence");
+        }
+        else if (transcript.includes("what is my name")) {
+          speak("Your name is Kuldeep, my sweetheart");
+        }
+        else if (transcript.includes("stop")) {
+          speak("Goodbye sir");
+          recognition.stop();
+        }
+        else {
+          speak("Sorry, I did not understand that command.");
+        }
+      };
+
+      recognition.onerror = function(event) {
+        document.getElementById("status").innerText = "Error: " + event.error;
+      };
+    }
+  </script>
+</body>
+</html>
